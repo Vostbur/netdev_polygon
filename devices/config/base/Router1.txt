@@ -1,0 +1,38 @@
+conf t
+hostname Router1
+vrf definition MGMT
+ address-family ipv4
+ exit-address-family
+ip domain name netlab.com
+ip name-server vrf MGMT 192.168.2.1
+username admin privilege 15 password 0 admin
+ip ssh version 2
+interface FastEthernet0/0
+ no ip address
+interface FastEthernet1/0
+ no ip address
+interface FastEthernet1/1
+ no ip address
+interface FastEthernet2/0
+ no ip address
+interface FastEthernet2/1
+ vrf forwarding MGMT
+ ip address 192.168.2.11 255.255.255.0
+ no shutdown
+ip route vrf MGMT 0.0.0.0 0.0.0.0 192.168.2.1
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ privilege level 15
+ login local
+ transport input all
+crypto key generate rsa mod 1024
+end
