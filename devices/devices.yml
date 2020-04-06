@@ -1,0 +1,12 @@
+all:
+  vars:
+    username: admin
+    password: admin
+    device_type: cisco_ios
+  devices:
+    - hostname: Router1
+      host: 192.168.2.11
+    - hostname: Router2
+      host: 192.168.2.12
+    - hostname: Router3
+      host: 192.168.2.15
