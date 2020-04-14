@@ -7,7 +7,7 @@ import netdev
 
 def parse_inventory_file(yaml_file = 'devices/devices.yml', inventory = 'all'):
     with open(yaml_file) as f:
-        raw = yaml.load(f.read(), Loader=yaml.BaseLoader)
+        raw = yaml.load(f, Loader=yaml.FullLoader)
     raw = deepcopy(raw[inventory])
     for device in raw['devices']:
         host = {}
@@ -17,15 +17,17 @@ def parse_inventory_file(yaml_file = 'devices/devices.yml', inventory = 'all'):
         yield host
 
 
-async def netmiko_connect(host, commands):
-    hostname = list(host)[0]
-    host = host.get(hostname)
+async def async_connect(host, commands):
+    hostname, host_connection_params = host.popitem()
 
-    async with netdev.create(**host) as ios:
+    output = '\n{0} Start config device "{1}" {0}\n'.format('=' * 20, hostname)
+    async with netdev.create(**host_connection_params) as ios:
         for comm in commands:
-            print('{0} {1} : command - {2} {0}'.format('=' * 20, hostname, comm))
-            output = await ios.send_command(comm)
-            print(output)
+            output += '\n{0} Run command "{1}" {0}\n'.format('=' * 20, comm)
+            output += await ios.send_command(comm)
+    output += '\n{0} End config device "{1}" {0}\n'.format('=' * 20, hostname)
+
+    print(output)
 
 
 async def main():
@@ -35,7 +37,7 @@ async def main():
         'sh run | e !'
     ]
 
-    tasks = [netmiko_connect(host, commands) for host in parse_inventory_file()]
+    tasks = [asyncrm_connect(host, commands) for host in parse_inventory_file()]
     await asyncio.wait(tasks)
 
 
